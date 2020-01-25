@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Rocket : MonoBehaviour {
 
+	[SerializeField] float rcsThrust = 100f;
+	[SerializeField] float mainThrust = 100f;
 	Rigidbody rigidBody;
 	AudioSource audioSource;
 
@@ -15,14 +17,25 @@ public class Rocket : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		processInput();
+		thrust();
+		rotate();
 	}
 
-	void processInput() {
+	void OnCollisionEnter(Collision collision) {
+		switch(collision.gameObject.tag) {
+			case "Friendly":
+				print("Friendly");
+				break;
+			case "Deadly":
+				print("Deadly");
+				break;
+		}
+	}
 
+	void thrust() {
 		// Thrust while rotating
 		if(Input.GetKey(KeyCode.Space)) {
-			rigidBody.AddRelativeForce(Vector3.up);
+			rigidBody.AddRelativeForce(Vector3.up * mainThrust);
 			// So it doesn't layer
 			if(!audioSource.isPlaying) {
 				audioSource.Play();
@@ -30,11 +43,19 @@ public class Rocket : MonoBehaviour {
 		} else {
 			audioSource.Stop();
 		}
+	}
+
+	void rotate() {
+
+		rigidBody.freezeRotation = true; //Physics are enabled while we are actively rotating
+		float rotationThisFrame = rcsThrust * Time.deltaTime;
 
 		if(Input.GetKey(KeyCode.A)) {
-			transform.Rotate(Vector3.forward);
+			transform.Rotate(Vector3.forward * rotationThisFrame);
 		} else if(Input.GetKey(KeyCode.D)) {
-			transform.Rotate(-Vector3.forward);
+			transform.Rotate(-Vector3.forward * rotationThisFrame);
 		} 
+
+		rigidBody.freezeRotation = false; //Physics are disabled once we stop actively rotating
 	}
 }
